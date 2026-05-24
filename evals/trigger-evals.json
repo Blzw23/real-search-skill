@@ -1,0 +1,42 @@
+[
+  {
+    "query": "我最近想系统学习强化学习和 LLM agent 的结合，但我其实说不清楚该从哪些论文和项目开始。你能不能帮我做一次深度调研，最好能读论文、看 GitHub、最后形成本地学习路线？",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我比较一下 LangGraph、AutoGen、CrewAI 和 OpenAI Agents SDK，不要只看 README，可以 clone 源码看看它们核心抽象和扩展机制，最后给我一个选型建议。",
+    "should_trigger": true
+  },
+  {
+    "query": "我想做一个面向算法工程师的轻量实验管理 agent，但还没有想清楚。请先调研成熟产品、论文和开源项目，再给我一个 MVP 路线图。",
+    "should_trigger": true
+  },
+  {
+    "query": "这个方向我完全不懂，你先帮我找主流、前沿、成熟方案，多生成一些 markdown 文档，后面我慢慢看。",
+    "should_trigger": true
+  },
+  {
+    "query": "我有个新领域想学，别急着给答案，先规划一下，然后慢慢搜资料、读源码、阶段性总结。",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我把 README 里的错别字修一下。",
+    "should_trigger": false
+  },
+  {
+    "query": "查一下今天上海天气。",
+    "should_trigger": false
+  },
+  {
+    "query": "把这个 markdown 转成 html，样式好看一点。",
+    "should_trigger": false
+  },
+  {
+    "query": "运行 pytest 看看失败原因，然后修复这个单测。",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把当前仓库提交并 push 到 GitHub。",
+    "should_trigger": false
+  }
+]
