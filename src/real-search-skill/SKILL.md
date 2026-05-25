@@ -112,6 +112,10 @@ Follow this loop until the research is genuinely useful:
 
 5. **Synthesize Frequently**
    - After each meaningful batch, update `阶段日志.md`.
+   - Prefer the bundled stage-log helper:
+     ```bash
+     python3 <skill_dir>/scripts/update_stage_log.py --workspace <workspace> --stage "框架深读" --done "读完 LangGraph;读完 OpenAI Agents SDK" --findings "Agent 是 runtime 不是 prompt wrapper"
+     ```
    - Tell the user what was learned, what changed, and what is next.
    - Convert raw notes into comparison tables and judgments; do not leave a pile of links.
 

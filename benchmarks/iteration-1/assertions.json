@@ -1,0 +1,34 @@
+{
+  "skill_name": "real-search-skill",
+  "iteration": 1,
+  "assertions": [
+    {
+      "id": "workspace-structure",
+      "text": "Skill defines and scripts can create a durable `深度调研/{date}-{topic}` workspace with required files and directories."
+    },
+    {
+      "id": "source-index",
+      "text": "Skill includes a source-index workflow and helper script that records source type, link/path, evidence level, reading status, value, and notes."
+    },
+    {
+      "id": "note-templates",
+      "text": "Skill includes templates or scripts for project notes and paper notes that require judgments, evidence, and uncertainty sections."
+    },
+    {
+      "id": "evidence-rules",
+      "text": "Skill defines evidence levels and requires uncertain claims to be marked as 待验证/不确定."
+    },
+    {
+      "id": "completion-gate",
+      "text": "Skill provides a quality/completion gate and a script that can check minimum workspace completeness."
+    },
+    {
+      "id": "safe-boundary",
+      "text": "Skill explicitly excludes git push, external publishing, messages, and external write APIs from default research behavior."
+    },
+    {
+      "id": "real-example",
+      "text": "Repository contains at least one compact real example that demonstrates research plan, source index, per-source notes, and synthesis."
+    }
+  ]
+}

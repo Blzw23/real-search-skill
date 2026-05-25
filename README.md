@@ -34,13 +34,16 @@ real-search-skill/
 ├── .claude-plugin/              # 插件/市场元数据
 ├── cli/                         # 轻量安装器
 ├── docs/                        # 使用和成熟化文档
-├── examples/                    # 后续真实调研样例
+├── benchmarks/                  # 结构化评测记录
+├── examples/                    # 真实调研样例
 ├── src/real-search-skill/       # 真正可安装的 skill 本体
 │   ├── SKILL.md
 │   ├── scripts/                 # 确定性辅助脚本
 │   ├── templates/               # 研究文档模板
 │   ├── references/              # 长流程参考说明
 │   └── evals/                   # 行为/触发评测草稿
+├── scripts/                     # 根目录兼容副本
+├── templates/                   # 根目录兼容副本
 ├── skill.json
 ├── README.md
 ├── DESIGN.md
@@ -127,6 +130,16 @@ python3 src/real-search-skill/scripts/clone_repo.py \
   --workspace "深度调研/20260525-Agent-框架调研"
 ```
 
+追加阶段日志：
+
+```bash
+python3 src/real-search-skill/scripts/update_stage_log.py \
+  --workspace "深度调研/20260525-Agent-框架调研" \
+  --stage "框架深读" \
+  --done "读完 OpenAI Agents SDK;读完 LangGraph" \
+  --findings "Agent 是 runtime 不是 prompt wrapper"
+```
+
 质量检查：
 
 ```bash
@@ -140,7 +153,8 @@ python3 src/real-search-skill/scripts/check_quality.py "深度调研/20260525-Ag
 - 已有可安装 skill 本体。
 - 已有脚本、模板、参考文档和 eval 草稿。
 - 已有插件元数据、安装器、设计说明和路线图。
-- 后续需要补正式 with-skill/baseline 评测报告和更多真实 examples。
+- 已有结构化 benchmark 记录和一个精简真实 example。
+- 后续需要补独立 with-skill/baseline 执行记录和 eval viewer 报告。
 
 ## License
 

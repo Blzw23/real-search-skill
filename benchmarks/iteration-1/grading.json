@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "Skill defines and scripts can create a durable `深度调研/{date}-{topic}` workspace with required files and directories.",
+      "passed": true,
+      "evidence": "`SKILL.md` contains Workspace Setup; `scripts/init_workspace.py` creates 研究计划.md, 资料索引.md, 阶段日志.md and required directories."
+    },
+    {
+      "text": "Skill includes a source-index workflow and helper script that records source type, link/path, evidence level, reading status, value, and notes.",
+      "passed": true,
+      "evidence": "`scripts/add_source.py` appends rows with type, name, link, evidence, status, value, and note fields."
+    },
+    {
+      "text": "Skill includes templates or scripts for project notes and paper notes that require judgments, evidence, and uncertainty sections.",
+      "passed": true,
+      "evidence": "`scripts/create_note.py` creates project and paper notes with sections such as 核心抽象, 工程启发, 值得借鉴, 避免照搬, 不确定/待验证."
+    },
+    {
+      "text": "Skill defines evidence levels and requires uncertain claims to be marked as 待验证/不确定.",
+      "passed": true,
+      "evidence": "`SKILL.md` Evidence Rules define A/B/C/D levels and require missing evidence to be marked 待验证/不确定."
+    },
+    {
+      "text": "Skill provides a quality/completion gate and a script that can check minimum workspace completeness.",
+      "passed": true,
+      "evidence": "`SKILL.md` Completion Gate references `scripts/check_quality.py`; smoke test passed 9/9 checks."
+    },
+    {
+      "text": "Skill explicitly excludes git push, external publishing, messages, and external write APIs from default research behavior.",
+      "passed": true,
+      "evidence": "`SKILL.md` Safety boundary states not to push to GitHub, publish content, send messages, or write to external services as part of this skill."
+    },
+    {
+      "text": "Repository contains at least one compact real example that demonstrates research plan, source index, per-source notes, and synthesis.",
+      "passed": false,
+      "evidence": "At the start of iteration-1, `examples/` only contained a placeholder README. This drives the next implementation step."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "total": 7,
+    "pass_rate": 0.86
+  },
+  "eval_feedback": {
+    "overall": "The skill has a productized structure and useful scripts, but lacks a compact real example and formal independent with-skill/baseline execution outputs.",
+    "suggestions": [
+      {
+        "assertion": "Repository contains at least one compact real example that demonstrates research plan, source index, per-source notes, and synthesis.",
+        "reason": "A mature skill needs a visible example so users can understand expected outputs without running a long task."
+      },
+      {
+        "reason": "Add a stage-log helper because stage updates are central to long-running research but currently must be edited manually."
+      },
+      {
+        "reason": "Strengthen quality checking to detect whether final synthesis documents exist, not only the base workspace files."
+      }
+    ]
+  }
+}

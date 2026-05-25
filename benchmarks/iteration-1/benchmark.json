@@ -1,0 +1,17 @@
+{
+  "skill_name": "real-search-skill",
+  "iteration": 1,
+  "benchmark_type": "structured_static_and_smoke",
+  "independent_with_skill_baseline_runs": false,
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "total": 7,
+    "pass_rate": 0.86
+  },
+  "notes": [
+    "This benchmark does not claim independent with-skill/baseline execution.",
+    "It records current maturity against concrete skill-creator style expectations.",
+    "The failing item is intentionally used to drive the next step: adding a real example."
+  ]
+}
