@@ -4,12 +4,12 @@
 
 当前仓库不内置大型调研结果，避免仓库过重。现在已有一个真实样例：
 
-- `examples/agent-framework-research/`
+- `仓库资料/examples/agent-framework-research/`
 
 后续可继续添加：
 
-- `examples/automl-agent-research/`
-- `examples/rag-evaluation-research/`
+- `仓库资料/examples/automl-agent-research/`
+- `仓库资料/examples/rag-evaluation-research/`
 
 每个样例可以只保留精简版：
 

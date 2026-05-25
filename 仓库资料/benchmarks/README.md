@@ -11,7 +11,7 @@
 - 本轮没有冒充已经完成独立子代理的 with-skill/baseline 执行。
 - 本轮使用“脚本能力 + skill 指令覆盖 + 真实案例回放”的方式做可复现评测。
 - 后续正式成熟评测应启动独立执行器，分别运行 with-skill 和 baseline，保存 transcript、outputs、timing，再生成 benchmark。
-- `examples/agent-framework-research/` 已经作为真实案例样例存在，可用于理解一次完整研究最终会留下什么。
+- `仓库资料/examples/agent-framework-research/` 已经作为真实案例样例存在，可用于理解一次完整研究最终会留下什么。
 - `src/real-search-skill/scripts/run_smoke.py` 可生成最小本地烟测工作区，验证工作流骨架。
 
 ## 正式评测目标
