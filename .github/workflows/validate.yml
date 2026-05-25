@@ -41,9 +41,4 @@ jobs:
           PY
       - name: Smoke test scripts
         run: |
-          workspace=$(python3 src/real-search-skill/scripts/init_workspace.py "CI 验证" --mode 研究落地 --root /tmp/real-search-ci --date 20260525)
-          python3 src/real-search-skill/scripts/add_source.py --workspace "$workspace" --type 官方文档 --name "Example" --link "https://example.com" --evidence A-源码/官方
-          python3 src/real-search-skill/scripts/create_note.py --workspace "$workspace" --kind project --title "Example Project"
-          python3 src/real-search-skill/scripts/create_note.py --workspace "$workspace" --kind paper --title "Example Paper"
-          printf '# 调研报告\n\n## 摘要\n\nCI smoke synthesis.\n' > "$workspace/调研报告.md"
-          python3 src/real-search-skill/scripts/check_quality.py "$workspace"
+          python3 src/real-search-skill/scripts/run_smoke.py --topic "CI 验证" --workspace /tmp/real-search-ci
