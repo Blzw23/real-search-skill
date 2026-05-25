@@ -8,65 +8,102 @@
 
 它解决的是普通模型搜索最容易出现的“走马观花”问题：不只扫一遍 README、不只摘几段介绍，而是进一步看项目技术栈、核心模块、扩展机制、源码路径和论文脉络，让你在调研过程中真正学会这个领域。
 
-## 当前实现状态
+## 它适合解决什么问题
 
-这个亮点已经在 skill 的工作流、模板和辅助脚本里落地：它会要求先规划、建立资料索引、区分证据等级、创建项目/论文/源码笔记，必要时浅克隆 GitHub 仓库并记录 commit、阅读路径和关键发现。
+适合这些场景：
 
-当前它不是一个无人值守的后台爬虫或论文机器人；“长期看很多论文、仔细读源码”的能力，主要通过 Codex 的长程执行、Goal/Plan 支持、阶段日志和质量门禁来保证。也就是说，它已经能把模型从“只看 README 的快速摘要”拉到“有证据、有路径、有复盘的深度研究流程”，但每次研究的深度仍取决于用户给的时间、网络/工具权限和当轮执行范围。
+- 你想学习一个新方向，但还不知道该从哪些关键词、论文、框架开始。
+- 你想知道某个领域的主流方案、成熟项目、前沿方法和代表论文。
+- 你不想只要几段搜索摘要，而是希望真的读官方文档、论文和 GitHub 源码。
+- 你正在构思一个项目，希望先看现有方案，再形成差异化判断和 MVP 路线。
+- 你需要把一次长时间研究沉淀成本地 Markdown 文档，后续可以继续接着读、接着做。
 
-它不是“快速搜索摘要”。它强调：
-
-- 先规划，再广度搜索，再深度阅读。
-- 读官方文档、论文、GitHub 源码和成熟项目。
-- 把过程沉淀成本地 Markdown 文档。
-- 明确区分证据、判断和不确定项。
-- 最终收敛成学习路线或落地方案。
-
-## 适合什么时候用
-
-适合：
-
-- “我想学习一个方向，但还说不清楚。”
-- “帮我调研主流、前沿、成熟方案。”
-- “不要只总结，真的看看论文和 GitHub 源码。”
-- “我想做一个项目，先帮我找思路、看现有方案、形成 MVP 路线。”
-- “这个领域有哪些框架/论文/产品值得看？”
-
-不适合：
+不适合这些场景：
 
 - 一句话事实查询。
-- 只需要修一个 bug。
-- 只需要改一个文件。
-- 需要立即发布、推送、发消息到外部平台的任务。
+- 普通代码修复或单文件编辑。
+- 只需要快速列几个链接。
+- 需要后台定时运行、自动发布或外部写入的任务。
 
-## 仓库结构
+## 一次典型工作流
+
+`real-search-skill` 会把一次模糊研究拆成可持续推进的过程：
+
+1. 先理解你的目标，必要时只问少量关键问题。
+2. 创建主题研究工作区，写下研究计划、资料索引和阶段日志。
+3. 广度搜索官方文档、论文、仓库、产品、benchmark 和社区资料。
+4. 选择高价值来源深读，必要时 shallow clone GitHub 仓库。
+5. 对论文、项目和源码分别写中文笔记，记录证据等级和不确定项。
+6. 阶段性综合，形成对比矩阵、调研报告、学习路线或落地方案。
+
+它是依附 Codex 的深度研究工作流，不是无人值守后台爬虫。长程能力来自 Codex 的持续执行、Goal/Plan、阶段日志和质量门禁。
+
+## 输出产物
+
+默认工作区类似：
 
 ```text
-real-search-skill/
-├── .claude-plugin/              # 插件/市场元数据
-├── cli/                         # 轻量安装器
-├── docs/                        # 使用和成熟化文档
-├── benchmarks/                  # 结构化评测记录
-├── examples/                    # 真实调研样例
-├── src/real-search-skill/       # 真正可安装的 skill 本体
-│   ├── SKILL.md
-│   ├── scripts/                 # 确定性辅助脚本
-│   ├── templates/               # 研究文档模板
-│   ├── references/              # 长流程参考说明
-│   └── evals/                   # 行为/触发评测草稿
-├── scripts/                     # 根目录兼容副本
-├── templates/                   # 根目录兼容副本
-├── skill.json
-├── README.md
-├── DESIGN.md
-└── LICENSE
+深度调研/{YYYYMMDD}-{主题}/
+├── 研究计划.md
+├── 资料索引.md
+├── 阶段日志.md
+├── 论文阅读队列.md
+├── 多角色任务板.md
+├── 自动发现/
+├── 网页摘录/
+├── 项目调研记录/
+├── 论文调研记录/
+├── 源码阅读记录/
+├── 外部源码/
+├── 调研报告.md
+└── 落地方案.md
 ```
 
-根目录的 `SKILL.md` 也保留了一份兼容副本，方便直接安装或阅读；权威 skill 本体在 `src/real-search-skill/`。
+不同任务会有不同产物。学习型任务更偏学习路线、概念地图、论文笔记；落地型任务更偏对比矩阵、机会分析、项目方案和 MVP 路线图。
+
+## 使用方式
+
+在 Codex 中，长程研究建议用 Goal 启动：
+
+```text
+/goal 使用 real-search-skill 深度调研 Agent 框架基座，先规划，再搜索主流、前沿、成熟方案，读论文和 GitHub 源码，最后沉淀中文调研报告和落地方案。
+```
+
+也可以直接触发：
+
+```text
+开启 real-search-skill。我要研究一个我还不太懂的方向，希望你先规划，再搜索主流/前沿/成熟方案，读论文和源码，最后在本地生成一套中文文档。
+```
+
+当运行环境支持 Goal/Plan 时，skill 会优先用它们管理长程任务；如果没有这些能力，就用 `研究计划.md`、`阶段日志.md` 和本地 checklist 记录进度，方便下一轮继续。
+
+## CLI 辅助能力
+
+这些脚本是给 Codex 或高级用户调用的确定性辅助工具，用来减少重复劳动。日常使用时，你通常只需要在对话里开启 skill，不需要手动逐个运行脚本。
+
+| 能力 | 作用 |
+| --- | --- |
+| 初始化研究工作区 | 创建计划、索引、日志、笔记目录和默认产物结构 |
+| 自动发现资料 | 根据主题生成候选来源，整理到 `自动发现/` 和 `资料索引.md` |
+| 处理论文 | 记录论文元数据、阅读队列、PDF/正文抽取状态和笔记草稿 |
+| clone 仓库 | shallow clone GitHub 项目并记录 URL、commit 和来源信息 |
+| 分析源码阅读路线 | 根据目录、语言、入口、测试和扩展点生成建议阅读路径 |
+| 生成多角色任务板 | 把长程研究拆成 planner、explorer、paper-reader、source-reader、reviewer、synthesizer 等角色任务 |
+| 质量检查 | 检查资料索引、证据等级、源码阅读、论文队列和浅度风险 |
+| smoke 验证 | 生成最小样例工作区，验证 skill 的主要脚本链路 |
+
+常用命令示例：
+
+```bash
+python3 src/real-search-skill/scripts/init_workspace.py "Agent 框架调研" --mode 研究落地
+python3 src/real-search-skill/scripts/check_quality.py "深度调研/20260525-Agent-框架调研"
+```
+
+更多脚本可以在 `src/real-search-skill/scripts/` 中查看。
 
 ## 安装
 
-从仓库安装到 Codex：
+从 GitHub 安装到 Codex：
 
 ```bash
 git clone git@github.com:Blzw23/real-search-skill.git
@@ -80,124 +117,31 @@ python3 cli/install.py --target codex
 python3 cli/install.py --target codex --force
 ```
 
-## 使用
+安装后，本体会进入你的 Codex skills 目录。后续在对话中说“开启 real-search-skill”或描述深度调研需求即可触发。
 
-你可以直接说：
-
-```text
-开启 real-search-skill。我要研究一个我还不太懂的方向，希望你先规划，再搜索主流/前沿/成熟方案，读论文和源码，最后在本地生成一套中文文档。
-```
-
-默认创建：
+## 仓库结构
 
 ```text
-深度调研/{YYYYMMDD}-{主题}/
+real-search-skill/
+├── .claude-plugin/              # 插件/市场元数据
+├── cli/                         # 轻量安装器
+├── docs/                        # 使用和成熟化文档
+├── benchmarks/                  # 结构化评测记录
+├── examples/                    # 真实调研样例
+├── src/real-search-skill/       # 权威 skill 本体
+│   ├── SKILL.md
+│   ├── scripts/                 # 确定性辅助脚本
+│   ├── templates/               # 研究文档模板
+│   ├── references/              # 长流程参考说明
+│   └── evals/                   # 行为/触发评测材料
+├── scripts/                     # 根目录兼容副本
+├── templates/                   # 根目录兼容副本
+├── SKILL.md                     # 根目录兼容副本
+├── skill.json
+└── README.md
 ```
 
-常见产物：
-
-- `研究计划.md`
-- `资料索引.md`
-- `阶段日志.md`
-- `项目调研记录/`
-- `论文调研记录/`
-- `源码阅读记录/`
-- `调研报告.md`
-- `落地方案.md`
-- `MVP路线图.md`
-
-## 脚本
-
-初始化工作区：
-
-```bash
-python3 src/real-search-skill/scripts/init_workspace.py "Agent 框架调研" --mode 研究落地
-```
-
-添加资料来源：
-
-```bash
-python3 src/real-search-skill/scripts/add_source.py \
-  --workspace "深度调研/20260525-Agent-框架调研" \
-  --type 官方文档 \
-  --name "LangGraph Docs" \
-  --link "https://langchain-ai.github.io/langgraph/" \
-  --evidence A-源码/官方
-```
-
-生成笔记模板：
-
-```bash
-python3 src/real-search-skill/scripts/create_note.py \
-  --workspace "深度调研/20260525-Agent-框架调研" \
-  --kind project \
-  --title "LangGraph"
-```
-
-浅克隆仓库并记录 commit：
-
-```bash
-python3 src/real-search-skill/scripts/clone_repo.py \
-  https://github.com/langchain-ai/langgraph.git \
-  --workspace "深度调研/20260525-Agent-框架调研"
-```
-
-追加阶段日志：
-
-```bash
-python3 src/real-search-skill/scripts/update_stage_log.py \
-  --workspace "深度调研/20260525-Agent-框架调研" \
-  --stage "框架深读" \
-  --done "读完 OpenAI Agents SDK;读完 LangGraph" \
-  --findings "Agent 是 runtime 不是 prompt wrapper"
-```
-
-自动资料发现：
-
-```bash
-python3 src/real-search-skill/scripts/discover_sources.py "Agent 框架调研" --workspace "深度调研/20260525-Agent-框架调研"
-```
-
-论文处理：
-
-```bash
-python3 src/real-search-skill/scripts/process_paper.py https://arxiv.org/abs/2210.03629 --workspace "深度调研/20260525-Agent-框架调研"
-```
-
-源码路线分析：
-
-```bash
-python3 src/real-search-skill/scripts/analyze_repo.py /path/to/repo --workspace "深度调研/20260525-Agent-框架调研"
-```
-
-多角色任务板：
-
-```bash
-python3 src/real-search-skill/scripts/create_role_tasks.py --workspace "深度调研/20260525-Agent-框架调研" --topic "Agent 框架调研"
-```
-
-烟测：
-
-```bash
-python3 src/real-search-skill/scripts/run_smoke.py --topic "Agent 框架调研" --workspace /tmp/real-search-skill-smoke
-```
-
-质量检查：
-
-```bash
-python3 src/real-search-skill/scripts/check_quality.py "深度调研/20260525-Agent-框架调研"
-```
-
-## 当前状态
-
-当前版本已经是成熟可用的研究型 skill：
-
-- 已有可安装 skill 本体和根目录兼容副本。
-- 已有脚本、模板、参考文档和 eval 草稿。
-- 已有自动发现、论文处理、源码阅读路线、多角色任务板和 smoke runner。
-- 已有插件元数据、安装器、设计说明和路线图。
-- 已有结构化 benchmark 记录和真实 example。
-- 后续主要是继续打磨正式 with-skill/baseline 评测展示，而不是补基础能力。
+`src/real-search-skill/` 是权威 skill 本体；根目录的 `SKILL.md`、`scripts/`、`templates/` 保留为兼容入口，方便直接阅读或安装。
 
 ## License
 
