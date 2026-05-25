@@ -2,9 +2,12 @@
 
 这里放真实深度调研样例。
 
-当前仓库不内置大型调研结果，避免仓库过重。建议后续添加：
+当前仓库不内置大型调研结果，避免仓库过重。现在已有一个真实样例：
 
 - `examples/agent-framework-research/`
+
+后续可继续添加：
+
 - `examples/automl-agent-research/`
 - `examples/rag-evaluation-research/`
 

@@ -66,6 +66,9 @@ If scripts are unavailable, initialize these paths manually:
 - `研究计划.md`
 - `资料索引.md`
 - `阶段日志.md`
+- `论文阅读队列.md`
+- `多角色任务板.md`
+- `自动发现/`
 - `网页摘录/`
 - `项目调研记录/`
 - `论文调研记录/`
@@ -73,6 +76,11 @@ If scripts are unavailable, initialize these paths manually:
 - `外部源码/`
 
 Read [references/产物结构.md](references/产物结构.md) when creating the workspace or deciding final deliverables.
+For workflow details, also read:
+
+- [references/深度调研流程.md](references/深度调研流程.md)
+- [references/源码阅读清单.md](references/源码阅读清单.md)
+- [references/质量门禁.md](references/质量门禁.md)
 
 ## Execution Loop
 
@@ -87,10 +95,7 @@ Follow this loop until the research is genuinely useful:
    - Find official docs, repos, papers, surveys, benchmarks, examples, and mature products.
    - Build a candidate list before deep-reading one item.
    - Record each source in `资料索引.md` with evidence level and reading status.
-   - Prefer the bundled source helper:
-     ```bash
-     python3 <skill_dir>/scripts/add_source.py --workspace <workspace> --type 官方文档 --name "<name>" --link "<url>" --evidence A-源码/官方
-     ```
+   - Use the bundled discovery helper and source logger when useful.
 
 3. **Select Deep Sources**
    - Prioritize user-mentioned items, official sources, active high-impact repos, foundational papers, recent surveys, benchmark/eval work, and lightweight alternatives.
@@ -99,23 +104,12 @@ Follow this loop until the research is genuinely useful:
 4. **Read Real Materials**
    - For projects: read README, docs, examples, architecture/concepts, core runtime, extension points, permission/sandbox, memory/state, trace/log/eval, and tests.
    - For papers: capture problem, method, experiments, limits, engineering implications, and relation to the user's goal.
-   - For repositories, prefer:
-     ```bash
-     python3 <skill_dir>/scripts/clone_repo.py <repo-url> --workspace <workspace>
-     ```
-   - Use sparse checkout for very large repositories.
-   - Prefer the bundled note helper before writing detailed notes:
-     ```bash
-     python3 <skill_dir>/scripts/create_note.py --workspace <workspace> --kind project --title "<project>"
-     python3 <skill_dir>/scripts/create_note.py --workspace <workspace> --kind paper --title "<paper>"
-     ```
+   - Use the bundled paper, repo, and note helpers when helpful.
 
 5. **Synthesize Frequently**
    - After each meaningful batch, update `阶段日志.md`.
-   - Prefer the bundled stage-log helper:
-     ```bash
-     python3 <skill_dir>/scripts/update_stage_log.py --workspace <workspace> --stage "框架深读" --done "读完 LangGraph;读完 OpenAI Agents SDK" --findings "Agent 是 runtime 不是 prompt wrapper"
-     ```
+   - For long runs, create or refresh `多角色任务板.md` so Codex can switch between planner/explorer/paper-reader/source-reader/reviewer/synthesizer.
+   - Use the bundled stage-log helper when it saves time.
    - Tell the user what was learned, what changed, and what is next.
    - Convert raw notes into comparison tables and judgments; do not leave a pile of links.
 
@@ -162,13 +156,8 @@ Before claiming completion, verify:
 - `资料索引.md` distinguishes official docs, papers, source code, and secondary material.
 - Cloned repositories record URL, commit hash, and key files read.
 - Notes include judgments, not only excerpts.
+- `论文阅读队列.md` and `多角色任务板.md` exist when the run needs long-form research.
+- `check_quality.py` passes and surfaces warnings for shallow evidence risks.
 - Final synthesis answers the user's original uncertainty.
 - External publishing/push actions were not performed by default.
-
-If scripts are available, run:
-
-```bash
-python3 <skill_dir>/scripts/check_quality.py <workspace>
-```
-
-If the work is too large for one turn, leave a clear continuation state in `阶段日志.md` and tell the user exactly what remains.
+- If the work is too large for one turn, leave a clear continuation state in `阶段日志.md` and tell the user exactly what remains.
