@@ -21,7 +21,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run a smoke test for the real-search skill.")
     parser.add_argument("--workspace", default=None, help="Optional workspace path. Defaults to a temp dir.")
     parser.add_argument("--topic", default="Smoke 测试")
-    parser.add_argument("--example", default=str(ROOT.parent.parent / "仓库资料" / "examples" / "agent-framework-research"))
+    parser.add_argument("--example", default=str(ROOT.parent.parent / "repo-assets" / "examples" / "agent-framework-research"))
     args = parser.parse_args()
 
     root = Path(args.workspace).expanduser().resolve() if args.workspace else Path(tempfile.mkdtemp(prefix="real-search-smoke-")).resolve()

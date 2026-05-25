@@ -131,7 +131,7 @@ real-search-skill/
 │   ├── templates/               # 研究文档模板
 │   ├── references/              # 长流程参考说明
 │   └── evals/                   # 行为/触发评测材料
-├── 仓库资料/
+├── repo-assets/
 │   ├── docs/                    # 使用和成熟化文档
 │   ├── benchmarks/              # 结构化评测记录
 │   └── examples/                # 真实调研样例
@@ -142,7 +142,7 @@ real-search-skill/
 └── README.md
 ```
 
-`src/real-search-skill/` 是权威 skill 本体；根目录的 `SKILL.md`、`scripts/`、`templates/` 保留为兼容入口，方便直接阅读或安装。不会被安装器使用、但对仓库展示有帮助的文档、评测和样例，统一放在 `仓库资料/` 下。
+`src/real-search-skill/` 是权威 skill 本体；根目录的 `SKILL.md`、`scripts/`、`templates/` 保留为兼容入口，方便直接阅读或安装。不会被安装器使用、但对仓库展示有帮助的文档、评测和样例，统一放在 `repo-assets/` 下。
 
 ## License
 
