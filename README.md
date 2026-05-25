@@ -152,6 +152,36 @@ python3 src/real-search-skill/scripts/update_stage_log.py \
   --findings "Agent 是 runtime 不是 prompt wrapper"
 ```
 
+自动资料发现：
+
+```bash
+python3 src/real-search-skill/scripts/discover_sources.py "Agent 框架调研" --workspace "深度调研/20260525-Agent-框架调研"
+```
+
+论文处理：
+
+```bash
+python3 src/real-search-skill/scripts/process_paper.py https://arxiv.org/abs/2210.03629 --workspace "深度调研/20260525-Agent-框架调研"
+```
+
+源码路线分析：
+
+```bash
+python3 src/real-search-skill/scripts/analyze_repo.py /path/to/repo --workspace "深度调研/20260525-Agent-框架调研"
+```
+
+多角色任务板：
+
+```bash
+python3 src/real-search-skill/scripts/create_role_tasks.py --workspace "深度调研/20260525-Agent-框架调研" --topic "Agent 框架调研"
+```
+
+烟测：
+
+```bash
+python3 src/real-search-skill/scripts/run_smoke.py --topic "Agent 框架调研" --workspace /tmp/real-search-skill-smoke
+```
+
 质量检查：
 
 ```bash
@@ -160,13 +190,14 @@ python3 src/real-search-skill/scripts/check_quality.py "深度调研/20260525-Ag
 
 ## 当前状态
 
-当前版本是产品化早期版本：
+当前版本已经是成熟可用的研究型 skill：
 
-- 已有可安装 skill 本体。
+- 已有可安装 skill 本体和根目录兼容副本。
 - 已有脚本、模板、参考文档和 eval 草稿。
+- 已有自动发现、论文处理、源码阅读路线、多角色任务板和 smoke runner。
 - 已有插件元数据、安装器、设计说明和路线图。
-- 已有结构化 benchmark 记录和一个精简真实 example。
-- 后续需要补独立 with-skill/baseline 执行记录和 eval viewer 报告。
+- 已有结构化 benchmark 记录和真实 example。
+- 后续主要是继续打磨正式 with-skill/baseline 评测展示，而不是补基础能力。
 
 ## License
 
