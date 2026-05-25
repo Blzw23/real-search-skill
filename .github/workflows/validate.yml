@@ -1,0 +1,48 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate manifests and JSON
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          for path in [
+              "skill.json",
+              ".claude-plugin/plugin.json",
+              ".claude-plugin/marketplace.json",
+              "evals/evals.json",
+              "evals/trigger-evals.json",
+              "src/real-search-skill/evals/evals.json",
+              "src/real-search-skill/evals/trigger-evals.json",
+          ]:
+              json.loads(Path(path).read_text(encoding="utf-8"))
+
+          for path in ["SKILL.md", "src/real-search-skill/SKILL.md"]:
+              text = Path(path).read_text(encoding="utf-8")
+              match = re.match(r"^---\n(.*?)\n---\n", text, re.S)
+              assert match, f"missing frontmatter: {path}"
+              frontmatter = match.group(1)
+              assert "name: real-search-skill" in frontmatter
+              desc = re.search(r"^description: (.*)$", frontmatter, re.M)
+              assert desc and len(desc.group(1)) <= 1024
+          PY
+      - name: Smoke test scripts
+        run: |
+          workspace=$(python3 src/real-search-skill/scripts/init_workspace.py "CI 验证" --mode 研究落地 --root /tmp/real-search-ci --date 20260525)
+          python3 src/real-search-skill/scripts/add_source.py --workspace "$workspace" --type 官方文档 --name "Example" --link "https://example.com" --evidence A-源码/官方
+          python3 src/real-search-skill/scripts/create_note.py --workspace "$workspace" --kind project --title "Example Project"
+          python3 src/real-search-skill/scripts/create_note.py --workspace "$workspace" --kind paper --title "Example Paper"
+          python3 src/real-search-skill/scripts/check_quality.py "$workspace"

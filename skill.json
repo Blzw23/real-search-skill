@@ -1,0 +1,24 @@
+{
+  "name": "real-search-skill",
+  "displayName": "Real Search Skill",
+  "description": "Long-running, evidence-backed deep research workflow for unclear domains, framework/paper/source-code research, learning plans, and landing-to-build proposals.",
+  "version": "0.3.0",
+  "author": "Blzw23",
+  "license": "MIT",
+  "homepage": "https://github.com/Blzw23/real-search-skill",
+  "repository": "https://github.com/Blzw23/real-search-skill",
+  "keywords": [
+    "deep-research",
+    "agent-skill",
+    "learning",
+    "source-code-reading",
+    "paper-reading",
+    "research-workflow",
+    "codex"
+  ],
+  "platforms": [
+    "codex",
+    "claude"
+  ],
+  "install": "python3 cli/install.py --target codex"
+}

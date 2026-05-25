@@ -1,4 +1,4 @@
-# real-search-skill
+# Real Search Skill
 
 `real-search-skill` 是一个面向 Codex 的深度研究工作流 skill。它用于把模糊的学习、调研、选型、找思路、读论文源码、项目构思请求，推进成一个可复盘的本地研究工作区。
 
@@ -27,9 +27,53 @@
 - 只需要改一个文件。
 - 需要立即发布、推送、发消息到外部平台的任务。
 
-## 默认输出
+## 仓库结构
 
-每次深度调研默认创建：
+```text
+real-search-skill/
+├── .claude-plugin/              # 插件/市场元数据
+├── cli/                         # 轻量安装器
+├── docs/                        # 使用和成熟化文档
+├── examples/                    # 后续真实调研样例
+├── src/real-search-skill/       # 真正可安装的 skill 本体
+│   ├── SKILL.md
+│   ├── scripts/                 # 确定性辅助脚本
+│   ├── templates/               # 研究文档模板
+│   ├── references/              # 长流程参考说明
+│   └── evals/                   # 行为/触发评测草稿
+├── skill.json
+├── README.md
+├── DESIGN.md
+└── LICENSE
+```
+
+根目录的 `SKILL.md` 也保留了一份兼容副本，方便直接安装或阅读；权威 skill 本体在 `src/real-search-skill/`。
+
+## 安装
+
+从仓库安装到 Codex：
+
+```bash
+git clone git@github.com:Blzw23/real-search-skill.git
+cd real-search-skill
+python3 cli/install.py --target codex
+```
+
+覆盖安装：
+
+```bash
+python3 cli/install.py --target codex --force
+```
+
+## 使用
+
+你可以直接说：
+
+```text
+开启 real-search-skill。我要研究一个我还不太懂的方向，希望你先规划，再搜索主流/前沿/成熟方案，读论文和源码，最后在本地生成一套中文文档。
+```
+
+默认创建：
 
 ```text
 深度调研/{YYYYMMDD}-{主题}/
@@ -43,65 +87,61 @@
 - `项目调研记录/`
 - `论文调研记录/`
 - `源码阅读记录/`
-- `网页摘录/`
-- `外部源码/`
 - `调研报告.md`
-- `学习总结.md`
 - `落地方案.md`
 - `MVP路线图.md`
 
-## 两种模式
+## 脚本
 
-`学习笔记` 模式：
-
-- 学习路线
-- 概念地图
-- 论文和源码笔记
-- 阶段复盘
-- 下一步学习计划
-
-`研究落地` 模式：
-
-- 调研报告
-- 对比矩阵
-- 机会与风险
-- 项目方案
-- MVP 路线图
-
-如果用户不指定，默认使用 `研究落地`。
-
-## 安装
-
-复制本仓库到 Codex skills 目录：
+初始化工作区：
 
 ```bash
-mkdir -p ~/.codex/skills
-git clone git@github.com:Blzw23/real-search-skill.git ~/.codex/skills/real-search-skill
+python3 src/real-search-skill/scripts/init_workspace.py "Agent 框架调研" --mode 研究落地
 ```
 
-如果已经安装过：
+添加资料来源：
 
 ```bash
-cd ~/.codex/skills/real-search-skill
-git pull
+python3 src/real-search-skill/scripts/add_source.py \
+  --workspace "深度调研/20260525-Agent-框架调研" \
+  --type 官方文档 \
+  --name "LangGraph Docs" \
+  --link "https://langchain-ai.github.io/langgraph/" \
+  --evidence A-源码/官方
 ```
 
-## 文件结构
+生成笔记模板：
 
-```text
-real-search-skill/
-├── SKILL.md
-├── README.md
-├── evals/
-│   ├── evals.json
-│   └── trigger-evals.json
-└── references/
-    ├── 产物结构.md
-    ├── 深度调研流程.md
-    ├── 源码阅读清单.md
-    └── 质量门禁.md
+```bash
+python3 src/real-search-skill/scripts/create_note.py \
+  --workspace "深度调研/20260525-Agent-框架调研" \
+  --kind project \
+  --title "LangGraph"
+```
+
+浅克隆仓库并记录 commit：
+
+```bash
+python3 src/real-search-skill/scripts/clone_repo.py \
+  https://github.com/langchain-ai/langgraph.git \
+  --workspace "深度调研/20260525-Agent-框架调研"
+```
+
+质量检查：
+
+```bash
+python3 src/real-search-skill/scripts/check_quality.py "深度调研/20260525-Agent-框架调研"
 ```
 
 ## 当前状态
 
-当前版本是经过结构化整理的早期版本。它包含可执行的 workflow、参考模板和 eval 草稿。正式的 with-skill/baseline 子代理评测可以后续继续补。
+当前版本是产品化早期版本：
+
+- 已有可安装 skill 本体。
+- 已有脚本、模板、参考文档和 eval 草稿。
+- 已有插件元数据、安装器、设计说明和路线图。
+- 后续需要补正式 with-skill/baseline 评测报告和更多真实 examples。
+
+## License
+
+MIT

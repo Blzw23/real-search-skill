@@ -1,0 +1,20 @@
+{
+  "name": "real-search-skill",
+  "description": "Deep research workflow skill for turning vague learning, investigation, and project-discovery requests into evidence-backed local research workspaces with plans, source indexes, paper/source notes, comparison reports, and optional MVP plans.",
+  "version": "0.3.0",
+  "author": {
+    "name": "Blzw23"
+  },
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "deep-research",
+    "learning",
+    "papers",
+    "github-source",
+    "agent-workflow"
+  ],
+  "skills": [
+    "./src/real-search-skill"
+  ]
+}
