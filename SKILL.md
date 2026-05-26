@@ -97,6 +97,7 @@ Follow this loop until the research is genuinely useful:
    - Record each source in `资料索引.md` with evidence level and reading status.
    - Use the bundled discovery helper and source logger when useful.
    - Treat auto-discovered search entries as best-effort leads, not formal evidence. Generated search pages, product pages, and community results stay `D-待验证` or `C-社区/博客` until verified against official docs, paper text, or source code.
+   - For community/forum signals, prefer no-login-accessible sources such as Hacker News, GitHub Issues/Discussions, Lobsters, Dev.to, old Reddit, V2EX search, and 掘金. Skip sources that only expose snippets or block useful reading behind login.
 
 3. **Select Deep Sources**
    - Prioritize user-mentioned items, official sources, active high-impact repos, foundational papers, recent surveys, benchmark/eval work, and lightweight alternatives.

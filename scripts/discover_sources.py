@@ -229,18 +229,40 @@ def generated_search_candidates(topic: str) -> list[Candidate]:
             value="用于发现社区整理的成熟项目清单。",
             reason="作为广度扫描入口，后续需回到原始项目和论文验证。",
         ),
-        Candidate(
-            type="社区讨论搜索",
-            name=f"Hacker News 搜索：{topic}",
-            url=f"https://hn.algolia.com/?q={encoded}",
-            evidence="C-社区/博客",
-            status="待读",
-            priority=45,
-            source="Generated Search",
-            value="用于发现社区讨论、产品趋势和反例。",
-            reason="社区信号只能作为辅助，不可作为正式结论的唯一证据。",
-        ),
     ]
+
+
+def community_search_candidates(topic: str) -> list[Candidate]:
+    encoded = urllib.parse.quote(topic)
+    github_query = urllib.parse.quote(topic)
+    v2ex_query = urllib.parse.quote(f"site:v2ex.com {topic}")
+    entries = [
+        ("Hacker News", "https://hn.algolia.com/?q={q}", "英文技术社区讨论、发布反馈、早期项目信号。", 48),
+        ("GitHub Issues", "https://github.com/search?q={q}&type=issues", "真实 bug、使用痛点、维护活跃度和边界问题。", 52),
+        ("GitHub Discussions", "https://github.com/search?q={q}&type=discussions", "项目社区问答、设计讨论和实际采用场景。", 50),
+        ("Lobsters", "https://lobste.rs/search?q={q}", "偏工程深度的社区讨论和技术反思。", 43),
+        ("Dev.to", "https://dev.to/search?q={q}", "教程、经验文章和使用案例线索。", 40),
+        ("old Reddit", "https://old.reddit.com/search?q={q}", "用户反馈、对比争议和实践踩坑。", 42),
+        ("V2EX", "https://www.google.com/search?q={q}", "中文开发者社区讨论线索。", 38),
+        ("掘金", "https://juejin.cn/search?query={q}", "中文工程实践、教程和社区文章线索。", 38),
+    ]
+    candidates: list[Candidate] = []
+    for name, template, value, priority in entries:
+        query = v2ex_query if name == "V2EX" else github_query if name.startswith("GitHub") else encoded
+        candidates.append(
+            Candidate(
+                type="社区讨论搜索",
+                name=f"{name} 搜索：{topic}",
+                url=template.format(q=query),
+                evidence="C-社区/博客",
+                status="待读",
+                priority=priority,
+                source="Community Search",
+                value=value,
+                reason="无登录可访问的社区搜索入口；只用于发现痛点、争议、真实反馈和关键词，不能单独支撑正式结论。",
+            )
+        )
+    return candidates
 
 
 def openalex_candidates(topic: str, limit: int) -> tuple[list[Candidate], list[str]]:
@@ -416,6 +438,8 @@ def main() -> None:
     seen: set[str] = set()
 
     for item in generated_search_candidates(args.topic):
+        add_unique(candidates, seen, item)
+    for item in community_search_candidates(args.topic):
         add_unique(candidates, seen, item)
 
     github_items, github_errors = github_candidates(args.topic, args.max_github)
