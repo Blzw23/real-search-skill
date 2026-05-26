@@ -13,6 +13,8 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 USER_AGENT = "real-search-skill/0.2"
 
@@ -43,6 +45,21 @@ def shorten(text: str, limit: int = 180) -> str:
 
 def md_cell(text: object) -> str:
     return str(text).replace("|", "\\|").replace("\n", " ").strip()
+
+
+def coverage_bucket(item: Candidate) -> str:
+    blob = " ".join([item.type, item.source, item.evidence, item.name, item.reason]).lower()
+    if any(token in blob for token in ["awesome", "community", "reddit", "hacker news", "lobsters", "dev.to", "论坛", "discussion", "社区"]):
+        return "社区/论坛"
+    if any(token in blob for token in ["benchmark", "evaluation", "leaderboard", "评测", "测评"]):
+        return "benchmark/eval"
+    if any(token in blob for token in ["源码", "github", "repository", "repo"]):
+        return "开源/源码"
+    if any(token in blob for token in ["论文", "arxiv", "crossref", "openalex", "semantic scholar"]):
+        return "论文/技术报告"
+    if any(token in blob for token in ["产品", "official", "官网", "docs", "saas", "platform"]):
+        return "官方/产品"
+    return "其他"
 
 
 def openalex_abstract_snippet(index: object, limit: int = 180) -> str:
@@ -377,21 +394,38 @@ def semantic_scholar_candidates(topic: str, limit: int) -> tuple[list[Candidate]
 
 
 def write_outputs(workspace: Path, topic: str, candidates: list[Candidate], errors: list[str]) -> None:
-    out_dir = workspace / "自动发现"
+    out_dir = process_path(workspace, "自动发现")
     out_dir.mkdir(parents=True, exist_ok=True)
+    sorted_candidates = sorted(candidates, key=lambda c: c.priority, reverse=True)
 
     jsonl = out_dir / "候选资料.jsonl"
     with jsonl.open("w", encoding="utf-8") as f:
-        for item in sorted(candidates, key=lambda c: c.priority, reverse=True):
+        for item in sorted_candidates:
             f.write(json.dumps(asdict(item), ensure_ascii=False) + "\n")
 
     md = out_dir / "候选资料.md"
     rows = []
-    for item in sorted(candidates, key=lambda c: c.priority, reverse=True):
+    bucket_counts: dict[str, int] = {}
+    for item in sorted_candidates:
+        bucket = coverage_bucket(item)
+        bucket_counts[bucket] = bucket_counts.get(bucket, 0) + 1
         rows.append(
             f"| {md_cell(item.type)} | {md_cell(item.name)} | {item.priority} | {md_cell(item.evidence)} | "
             f"{md_cell(item.status)} | {md_cell(item.source)} | {md_cell(item.url)} | {md_cell(item.value)} | {md_cell(item.reason)} |"
         )
+    bucket_lines = "\n".join(f"| {name} | {count} |" for name, count in sorted(bucket_counts.items()))
+    coverage_gaps = []
+    for bucket in ["官方/产品", "开源/源码", "论文/技术报告", "社区/论坛"]:
+        if bucket_counts.get(bucket, 0) == 0:
+            coverage_gaps.append(f"- 缺少 `{bucket}` 线索，下一轮应补齐。")
+    if bucket_counts.get("官方/产品", 0) > 0 and bucket_counts.get("开源/源码", 0) <= 1:
+        coverage_gaps.append("- 产品/官网线索多于源码线，容易停留在营销层，建议补 2-3 个可读源码对象。")
+    if bucket_counts.get("论文/技术报告", 0) > 0 and bucket_counts.get("开源/源码", 0) == 0:
+        coverage_gaps.append("- 论文线存在但源码线缺失，容易只有方法感没有工程感。")
+    if bucket_counts.get("社区/论坛", 0) == 0:
+        coverage_gaps.append("- 缺少社区/论坛信号，可能看不到真实用户痛点与争议。")
+    if not coverage_gaps:
+        coverage_gaps.append("- 当前候选集覆盖面基本完整，下一轮重点转向深读与去伪存真。")
     error_block = "\n".join(f"- {error}" for error in errors) if errors else "- 无"
     md.write_text(
         f"""# 候选资料
@@ -405,6 +439,16 @@ def write_outputs(workspace: Path, topic: str, candidates: list[Candidate], erro
 | 类型 | 名称 | 优先级 | 证据等级 | 阅读状态 | 来源 | 链接 | 信号 | 入选原因 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 {chr(10).join(rows)}
+
+## 覆盖概览
+
+| 视角 | 数量 |
+| --- | --- |
+{bucket_lines}
+
+## 当前覆盖缺口
+
+{chr(10).join(coverage_gaps)}
 
 ## 获取失败/待验证
 

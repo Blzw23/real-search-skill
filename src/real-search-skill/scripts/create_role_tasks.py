@@ -7,6 +7,8 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 ROLES = [
     (
@@ -17,17 +19,17 @@ ROLES = [
     (
         "explorer",
         "广度发现框架、论文、产品、基准、awesome list 和官方文档。",
-        ["运行或补充自动资料发现", "去重候选来源", "建立对比维度", "挑选深读对象"],
+        ["运行或补充自动资料发现", "覆盖官方/产品/论文/源码/社区/反例视角", "去重候选来源", "建立对比维度", "挑选深读对象"],
     ),
     (
         "paper-reader",
         "阅读论文正文，把方法、实验、局限映射到工程启发。",
-        ["维护论文阅读队列", "处理 PDF/元数据", "写论文笔记", "标注未读正文或弱证据"],
+        ["维护论文阅读队列", "处理 PDF/元数据", "至少完成 3 篇正文级关键论文笔记或写清原因", "标注未读正文或弱证据"],
     ),
     (
         "source-reader",
         "clone/分析项目源码，找技术栈、入口、核心模块和扩展点。",
-        ["维护外部源码", "生成源码阅读路线", "深读核心文件", "记录 commit 和阅读路径"],
+        ["维护外部源码", "生成源码阅读路线", "尽量形成 2 条以上源码深读线", "深读核心文件", "记录 commit 和阅读路径"],
     ),
     (
         "reviewer",
@@ -52,8 +54,7 @@ def main() -> None:
     parser.add_argument("--topic", required=True)
     args = parser.parse_args()
 
-    workspace = Path(args.workspace).expanduser().resolve()
-    board = workspace / "多角色任务板.md"
+    board = process_path(args.workspace, "多角色任务板.md")
     role_blocks = []
     for role, mission, tasks in ROLES:
         role_blocks.append(
@@ -78,7 +79,7 @@ def main() -> None:
 
 ## 说明
 
-这些不是独立后台 agent，而是 Codex 在长程调研中按角色切换执行的任务剧本。每完成一批任务，都要更新 `阶段日志.md`，并把证据写入对应笔记或资料索引。
+这些不是独立后台 agent，而是 Codex 在长程调研中按角色切换执行的任务剧本。每完成一批任务，都要更新 `工作材料/阶段日志.md`，并把证据写入对应笔记或资料索引。
 
 创建时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}
 

@@ -7,6 +7,8 @@ import argparse
 import re
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 TEMPLATES = {
     "project": """# {title}调研
@@ -16,6 +18,8 @@ TEMPLATES = {
 ## 核心抽象
 
 ## 运行流程
+
+## 关键运行时循环
 
 ## 工具/扩展
 
@@ -30,6 +34,8 @@ TEMPLATES = {
 | 路径 | 作用 | 读到的设计 | 证据强度 |
 | --- | --- | --- | --- |
 
+## 关键证据摘录
+
 ## 值得借鉴
 
 ## 避免照搬
@@ -42,11 +48,15 @@ TEMPLATES = {
 
 ## 方法结构
 
+## 实验设置
+
 ## 实验与结论
 
 ## 正文抽取质量
 
 待补充
+
+## 关键证据/原文位置
 
 ## 工程启发
 
@@ -62,7 +72,11 @@ TEMPLATES = {
 
 ## 核心内容
 
+## 关键说法
+
 ## 可用信息
+
+## 不能单独支持什么结论
 
 ## 需要警惕
 
@@ -85,13 +99,12 @@ def main() -> None:
     parser.add_argument("--title", required=True)
     args = parser.parse_args()
 
-    workspace = Path(args.workspace).expanduser().resolve()
     folders = {
         "project": "项目调研记录",
         "paper": "论文调研记录",
         "source": "网页摘录",
     }
-    target_dir = workspace / folders[args.kind]
+    target_dir = process_path(args.workspace, folders[args.kind])
     target_dir.mkdir(parents=True, exist_ok=True)
     path = target_dir / f"{safe_name(args.title)}.md"
     if not path.exists():

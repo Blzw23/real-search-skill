@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 def escape_cell(value: str) -> str:
     return value.replace("|", "\\|").replace("\n", " ").strip()
@@ -23,7 +25,7 @@ def main() -> None:
     parser.add_argument("--note", default="", help="Extra note.")
     args = parser.parse_args()
 
-    index_path = Path(args.workspace).expanduser().resolve() / "资料索引.md"
+    index_path = process_path(args.workspace, "资料索引.md")
     if not index_path.exists():
         raise SystemExit(f"资料索引.md not found: {index_path}")
 

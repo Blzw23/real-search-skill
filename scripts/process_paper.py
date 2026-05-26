@@ -14,6 +14,8 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 USER_AGENT = "real-search-skill/0.2"
 
@@ -139,7 +141,7 @@ def generic_meta(value: str, title: str | None) -> PaperMeta:
 
 
 def ensure_queue(workspace: Path) -> Path:
-    queue = workspace / "论文阅读队列.md"
+    queue = process_path(workspace, "论文阅读队列.md")
     if not queue.exists():
         queue.write_text(
             """# 论文阅读队列
@@ -171,7 +173,7 @@ def append_queue_with_status(queue: Path, meta: PaperMeta, pdf_path: Path | None
 
 
 def get_pdf(meta: PaperMeta, workspace: Path) -> tuple[Path | None, str]:
-    pdf_dir = workspace / "论文PDF"
+    pdf_dir = process_path(workspace, "论文PDF")
     pdf_dir.mkdir(parents=True, exist_ok=True)
     local = Path(meta.pdf_url).expanduser()
     if local.exists():
@@ -265,7 +267,7 @@ def extract_text(pdf_path: Path | None, workspace: Path, title: str) -> TextExtr
     binary = shutil.which("pdftotext")
     if not binary:
         return TextExtraction(None, [], "未抽取正文：本机未发现 pdftotext。", "待抽取", 0, ["可安装 poppler/pdftotext 后重试。"])
-    text_dir = workspace / "论文正文"
+    text_dir = process_path(workspace, "论文正文")
     text_dir.mkdir(parents=True, exist_ok=True)
     target = text_dir / f"{safe_name(title)}.txt"
     try:
@@ -300,7 +302,7 @@ def detect_sections(text: str) -> list[str]:
 
 
 def write_note(workspace: Path, meta: PaperMeta, pdf_path: Path | None, pdf_info: PdfInspection, extraction: TextExtraction, pdf_status: str) -> Path:
-    note_dir = workspace / "论文调研记录"
+    note_dir = process_path(workspace, "论文调研记录")
     note_dir.mkdir(parents=True, exist_ok=True)
     note = note_dir / f"{safe_name(meta.title)}论文笔记.md"
     text_path = extraction.path

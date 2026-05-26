@@ -9,6 +9,8 @@ import subprocess
 from collections import Counter
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "dist", "build", "target", "__pycache__", ".next", ".cache"}
 LANG_EXTS = {
@@ -125,7 +127,6 @@ def main() -> None:
     repo = Path(args.repo_path).expanduser().resolve()
     if not repo.exists():
         raise SystemExit(f"仓库路径不存在：{repo}")
-    workspace = Path(args.workspace).expanduser().resolve()
     files = iter_files(repo)
     language_counts = Counter(LANG_EXTS.get(path.suffix.lower(), "Other") for path in files)
     manifests = [path for path in files if path.name in MANIFESTS]
@@ -143,7 +144,7 @@ def main() -> None:
         summary = read_package_summary(manifest)
         manifest_notes.append(f"- `{rel(manifest, repo)}`：{summary or '已发现，待阅读。'}")
 
-    out_dir = workspace / "源码阅读记录"
+    out_dir = process_path(args.workspace, "源码阅读记录")
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{repo.name}-阅读路线.md"
     out.write_text(

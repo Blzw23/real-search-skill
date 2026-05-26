@@ -8,6 +8,8 @@ import re
 import subprocess
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 def repo_name(url: str) -> str:
     name = url.rstrip("/").split("/")[-1]
@@ -28,7 +30,7 @@ def main() -> None:
     args = parser.parse_args()
 
     workspace = Path(args.workspace).expanduser().resolve()
-    target_root = workspace / "外部源码"
+    target_root = process_path(workspace, "外部源码")
     target_root.mkdir(parents=True, exist_ok=True)
     target = target_root / (args.name or repo_name(args.url))
 
@@ -39,7 +41,7 @@ def main() -> None:
         )
 
     commit = run(["git", "rev-parse", "--short", "HEAD"], cwd=target)
-    meta = workspace / "源码阅读记录" / f"{target.name}-metadata.md"
+    meta = process_path(workspace, "源码阅读记录", f"{target.name}-metadata.md")
     meta.parent.mkdir(parents=True, exist_ok=True)
     meta.write_text(
         f"""# {target.name} 源码记录

@@ -7,6 +7,8 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
+from workspace_layout import process_path
+
 
 def bullet_lines(text: str) -> str:
     items = [item.strip() for item in text.split(";") if item.strip()]
@@ -26,7 +28,7 @@ def main() -> None:
     parser.add_argument("--next", default="")
     args = parser.parse_args()
 
-    log_path = Path(args.workspace).expanduser().resolve() / "阶段日志.md"
+    log_path = process_path(args.workspace, "阶段日志.md")
     if not log_path.exists():
         raise SystemExit(f"阶段日志.md not found: {log_path}")
 
