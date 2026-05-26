@@ -30,10 +30,33 @@ class PaperMeta:
     source_status: str
 
 
+@dataclass
+class PdfInspection:
+    status: str
+    quality: str
+    page_count: int | None
+    size_bytes: int
+    notes: list[str]
+
+
+@dataclass
+class TextExtraction:
+    path: Path | None
+    sections: list[str]
+    status: str
+    quality: str
+    char_count: int
+    notes: list[str]
+
+
 def safe_name(value: str) -> str:
     value = re.sub(r"[\\/:*?\"<>|]+", "-", value.strip())
     value = re.sub(r"\s+", "-", value)
     return value.strip("-")[:120] or "未命名论文"
+
+
+def md_cell(value: object) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ").strip()
 
 
 def fetch_bytes(url: str, timeout: int = 30) -> bytes:
@@ -130,11 +153,19 @@ def ensure_queue(workspace: Path) -> Path:
 
 
 def append_queue(queue: Path, meta: PaperMeta, pdf_path: Path | None) -> None:
+    append_queue_with_status(queue, meta, pdf_path, meta.source_status, "待抽取")
+
+
+def append_queue_with_status(queue: Path, meta: PaperMeta, pdf_path: Path | None, pdf_status: str, text_quality: str) -> None:
     text = queue.read_text(encoding="utf-8")
     if meta.url and meta.url in text:
         return
     pdf_cell = str(pdf_path) if pdf_path else meta.pdf_url
-    row = f"| 待读 | {meta.title} | {meta.url} | {pdf_cell} | {meta.citation} | {meta.source_status} |\n"
+    remark = f"{meta.source_status}；PDF：{pdf_status}；正文：{text_quality}"
+    row = (
+        f"| 待读 | {md_cell(meta.title)} | {md_cell(meta.url)} | {md_cell(pdf_cell)} | "
+        f"{md_cell(meta.citation)} | {md_cell(remark)} |\n"
+    )
     with queue.open("a", encoding="utf-8") as f:
         f.write(row)
 
@@ -157,22 +188,100 @@ def get_pdf(meta: PaperMeta, workspace: Path) -> tuple[Path | None, str]:
     return None, "没有可下载 PDF 链接。"
 
 
-def extract_text(pdf_path: Path | None, workspace: Path, title: str) -> tuple[Path | None, list[str], str]:
+def inspect_pdf(pdf_path: Path | None) -> PdfInspection:
     if not pdf_path:
-        return None, [], "未抽取正文：缺少 PDF。"
+        return PdfInspection(
+            status="缺少 PDF，待人工补充。",
+            quality="待人工阅读",
+            page_count=None,
+            size_bytes=0,
+            notes=["没有可检查的 PDF 文件。"],
+        )
+
+    notes: list[str] = []
+    if not pdf_path.exists():
+        return PdfInspection(
+            status="PDF 路径不存在，待人工补充。",
+            quality="待人工阅读",
+            page_count=None,
+            size_bytes=0,
+            notes=[str(pdf_path)],
+        )
+
+    size = pdf_path.stat().st_size
+    if size < 512:
+        notes.append(f"文件大小异常小：{size} bytes。")
+
+    try:
+        with pdf_path.open("rb") as f:
+            header = f.read(5)
+    except OSError as exc:
+        return PdfInspection(
+            status=f"PDF 读取失败：{exc}",
+            quality="待人工阅读",
+            page_count=None,
+            size_bytes=size,
+            notes=notes,
+        )
+
+    if header != b"%PDF-":
+        notes.append("文件头不是 %PDF-，可能不是标准 PDF。")
+
+    page_count: int | None = None
+    pdfinfo = shutil.which("pdfinfo")
+    if pdfinfo:
+        try:
+            result = subprocess.run([pdfinfo, str(pdf_path)], check=True, capture_output=True, text=True)
+            match = re.search(r"^Pages:\s+(\d+)", result.stdout, re.M)
+            if match:
+                page_count = int(match.group(1))
+        except subprocess.CalledProcessError as exc:
+            notes.append(f"pdfinfo 读取失败：{exc.stderr.strip() or exc}")
+    else:
+        notes.append("本机未发现 pdfinfo，跳过页数检查。")
+
+    if header != b"%PDF-" or size < 512:
+        quality = "疑似损坏/待人工阅读"
+    else:
+        quality = "PDF 文件可检查"
+
+    status = "PDF 基础检查完成。"
+    if notes:
+        status += " " + "；".join(notes)
+    return PdfInspection(status=status, quality=quality, page_count=page_count, size_bytes=size, notes=notes)
+
+
+def classify_text_quality(char_count: int, section_count: int) -> str:
+    if char_count < 200:
+        return "疑似扫描版/待 OCR"
+    if char_count < 1000 or section_count < 2:
+        return "抽取质量低/需复核"
+    return "正常"
+
+
+def extract_text(pdf_path: Path | None, workspace: Path, title: str) -> TextExtraction:
+    if not pdf_path:
+        return TextExtraction(None, [], "未抽取正文：缺少 PDF。", "待人工阅读", 0, ["缺少 PDF。"])
     binary = shutil.which("pdftotext")
     if not binary:
-        return None, [], "未抽取正文：本机未发现 pdftotext。"
+        return TextExtraction(None, [], "未抽取正文：本机未发现 pdftotext。", "待抽取", 0, ["可安装 poppler/pdftotext 后重试。"])
     text_dir = workspace / "论文正文"
     text_dir.mkdir(parents=True, exist_ok=True)
     target = text_dir / f"{safe_name(title)}.txt"
     try:
         subprocess.run([binary, "-layout", str(pdf_path), str(target)], check=True, capture_output=True)
     except subprocess.CalledProcessError as exc:
-        return None, [], f"pdftotext 抽取失败：{exc}"
+        detail = exc.stderr.decode("utf-8", errors="replace") if isinstance(exc.stderr, bytes) else str(exc.stderr or exc)
+        return TextExtraction(None, [], f"pdftotext 抽取失败：{detail.strip()}", "待人工阅读", 0, [detail.strip()])
     text = target.read_text(encoding="utf-8", errors="replace")
     sections = detect_sections(text)
-    return target, sections, "PDF 正文已抽取。"
+    char_count = len(text.strip())
+    quality = classify_text_quality(char_count, len(sections))
+    status = f"PDF 正文已抽取：{char_count} 字符，识别章节 {len(sections)} 个。"
+    notes = []
+    if quality != "正常":
+        notes.append("抽取结果需要人工/Codex 复核，不应直接视为已完整阅读。")
+    return TextExtraction(target, sections, status, quality, char_count, notes)
 
 
 def detect_sections(text: str) -> list[str]:
@@ -190,12 +299,24 @@ def detect_sections(text: str) -> list[str]:
     return sections
 
 
-def write_note(workspace: Path, meta: PaperMeta, pdf_path: Path | None, text_path: Path | None, sections: list[str], pdf_status: str, text_status: str) -> Path:
+def write_note(workspace: Path, meta: PaperMeta, pdf_path: Path | None, pdf_info: PdfInspection, extraction: TextExtraction, pdf_status: str) -> Path:
     note_dir = workspace / "论文调研记录"
     note_dir.mkdir(parents=True, exist_ok=True)
     note = note_dir / f"{safe_name(meta.title)}论文笔记.md"
+    text_path = extraction.path
+    sections = extraction.sections
     section_lines = "\n".join(f"- {section}" for section in sections) if sections else "- 待阅读正文后补充"
     authors = "、".join(meta.authors) if meta.authors else "待补充"
+    page_count = pdf_info.page_count if pdf_info.page_count is not None else "待补充"
+    pending_lines = "\n".join(
+        f"- {item}" for item in [
+            pdf_status,
+            pdf_info.status,
+            extraction.status,
+            *pdf_info.notes,
+            *extraction.notes,
+        ] if item
+    )
     if not note.exists():
         note.write_text(
             f"""# {meta.title}论文笔记
@@ -209,7 +330,11 @@ def write_note(workspace: Path, meta: PaperMeta, pdf_path: Path | None, text_pat
 | 日期 | {meta.published or '待补充'} |
 | 链接 | {meta.url} |
 | PDF | {pdf_path or meta.pdf_url or '待补充'} |
+| PDF 处理状态 | {pdf_info.status} |
+| PDF 页数 | {page_count} |
 | 正文抽取 | {text_path or '待抽取'} |
+| 正文字符数 | {extraction.char_count} |
+| 正文抽取质量 | {extraction.quality} |
 | 引用 | {meta.citation} |
 | 状态 | 待读 |
 
@@ -237,8 +362,7 @@ def write_note(workspace: Path, meta: PaperMeta, pdf_path: Path | None, text_pat
 
 ## 不确定/待验证
 
-- {pdf_status}
-- {text_status}
+{pending_lines or '- 待阅读正文后补充'}
 """,
             encoding="utf-8",
         )
@@ -255,10 +379,11 @@ def main() -> None:
     workspace = Path(args.workspace).expanduser().resolve()
     meta = arxiv_meta(args.paper) or generic_meta(args.paper, args.title)
     pdf_path, pdf_status = get_pdf(meta, workspace)
-    text_path, sections, text_status = extract_text(pdf_path, workspace, meta.title)
+    pdf_info = inspect_pdf(pdf_path)
+    extraction = extract_text(pdf_path, workspace, meta.title)
     queue = ensure_queue(workspace)
-    append_queue(queue, meta, pdf_path)
-    note = write_note(workspace, meta, pdf_path, text_path, sections, pdf_status, text_status)
+    append_queue_with_status(queue, meta, pdf_path, pdf_info.quality, extraction.quality)
+    note = write_note(workspace, meta, pdf_path, pdf_info, extraction, pdf_status)
     print(note)
 
 

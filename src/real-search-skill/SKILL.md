@@ -96,6 +96,7 @@ Follow this loop until the research is genuinely useful:
    - Build a candidate list before deep-reading one item.
    - Record each source in `资料索引.md` with evidence level and reading status.
    - Use the bundled discovery helper and source logger when useful.
+   - Treat auto-discovered search entries as best-effort leads, not formal evidence. Generated search pages, product pages, and community results stay `D-待验证` or `C-社区/博客` until verified against official docs, paper text, or source code.
 
 3. **Select Deep Sources**
    - Prioritize user-mentioned items, official sources, active high-impact repos, foundational papers, recent surveys, benchmark/eval work, and lightweight alternatives.
@@ -104,6 +105,7 @@ Follow this loop until the research is genuinely useful:
 4. **Read Real Materials**
    - For projects: read README, docs, examples, architecture/concepts, core runtime, extension points, permission/sandbox, memory/state, trace/log/eval, and tests.
    - For papers: capture problem, method, experiments, limits, engineering implications, and relation to the user's goal.
+   - When PDF extraction is missing, low quality, or likely scanned, mark it as `待 OCR/待人工阅读` and do not imply the paper has been fully read.
    - Use the bundled paper, repo, and note helpers when helpful.
 
 5. **Synthesize Frequently**
@@ -157,7 +159,8 @@ Before claiming completion, verify:
 - Cloned repositories record URL, commit hash, and key files read.
 - Notes include judgments, not only excerpts.
 - `论文阅读队列.md` and `多角色任务板.md` exist when the run needs long-form research.
-- `check_quality.py` passes and surfaces warnings for shallow evidence risks.
+- `check_quality.py` passes hard structure checks and surfaces warnings for shallow evidence/content risks.
+- When the topic is important or the report will guide decisions, run `check_quality.py --write-review` and have the reviewer role work through `内容复核清单.md`. Use `--strict-content` only when content warnings should block completion.
 - Final synthesis answers the user's original uncertainty.
 - External publishing/push actions were not performed by default.
 - If the work is too large for one turn, leave a clear continuation state in `阶段日志.md` and tell the user exactly what remains.

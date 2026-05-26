@@ -33,7 +33,7 @@ def main() -> None:
     workspace = root / "深度调研" / f"{args.date}-{slugify_topic(args.topic)}"
     workspace.mkdir(parents=True, exist_ok=True)
 
-    for directory in ["网页摘录", "项目调研记录", "论文调研记录", "源码阅读记录", "外部源码"]:
+    for directory in ["网页摘录", "自动发现", "项目调研记录", "论文调研记录", "源码阅读记录", "外部源码", "论文PDF", "论文正文"]:
         (workspace / directory).mkdir(exist_ok=True)
 
     write_if_missing(
@@ -50,7 +50,7 @@ def main() -> None:
 
 ## 目标
 
-- 
+-
 
 ## 用户背景与约束
 
@@ -102,6 +102,34 @@ def main() -> None:
 - 判断变化：
 - 待验证：
 - 下一步：
+""",
+    )
+
+    write_if_missing(
+        workspace / "论文阅读队列.md",
+        """# 论文阅读队列
+
+| 状态 | 标题 | 链接 | PDF/本地路径 | 引用 | 备注 |
+| --- | --- | --- | --- | --- | --- |
+""",
+    )
+
+    write_if_missing(
+        workspace / "多角色任务板.md",
+        """# 多角色任务板
+
+## 说明
+
+- planner：定义研究问题和范围。
+- explorer：发现资料。
+- paper-reader：处理论文。
+- source-reader：分析源码。
+- reviewer：检查证据和浅读风险。
+- synthesizer：收敛判断。
+
+## 当前阻塞
+
+- 待补充
 """,
     )
 

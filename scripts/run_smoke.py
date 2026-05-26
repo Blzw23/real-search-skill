@@ -46,7 +46,28 @@ def main() -> None:
         report = example / "调研报告.md"
         if report.exists():
             shutil.copy2(report, target / "examples-调研报告.md")
-    (target / "调研报告.md").write_text("# 调研报告\n\n## 摘要\n\nSmoke test synthesis.\n", encoding="utf-8")
+    (target / "调研报告.md").write_text(
+        """# 调研报告
+
+## 摘要
+
+Smoke test synthesis.
+
+## 来源与证据
+
+- A-源码/官方：详见 `资料索引.md` 和 `源码阅读记录/`。
+- D-待验证：自动发现候选资料只作为线索，正式结论需要继续复核。
+
+## 不确定/局限
+
+- 这是 smoke 样例，不代表完整调研结论。
+
+## 下一步
+
+- 由 reviewer 继续检查内容复核清单和证据链。
+""",
+        encoding="utf-8",
+    )
 
     run(["python3", str(ROOT / "scripts" / "check_quality.py"), str(target), "--write-report"])
     print(target)

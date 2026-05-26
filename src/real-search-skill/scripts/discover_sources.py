@@ -36,6 +36,30 @@ def fetch_text(url: str, timeout: int = 20) -> str:
         return response.read().decode("utf-8", errors="replace")
 
 
+def shorten(text: str, limit: int = 180) -> str:
+    text = " ".join((text or "").split())
+    return text[:limit]
+
+
+def md_cell(text: object) -> str:
+    return str(text).replace("|", "\\|").replace("\n", " ").strip()
+
+
+def openalex_abstract_snippet(index: object, limit: int = 180) -> str:
+    if not isinstance(index, dict):
+        return ""
+    words: list[tuple[int, str]] = []
+    for word, positions in index.items():
+        if not isinstance(positions, list):
+            continue
+        for position in positions:
+            if isinstance(position, int):
+                words.append((position, word))
+    if not words:
+        return ""
+    return shorten(" ".join(word for _, word in sorted(words)[:80]), limit)
+
+
 def normalize_url(url: str) -> str:
     return url.strip().rstrip("/")
 
@@ -146,6 +170,8 @@ def arxiv_candidates(topic: str, limit: int) -> tuple[list[Candidate], list[str]
 def generated_search_candidates(topic: str) -> list[Candidate]:
     encoded = urllib.parse.quote(topic)
     docs_query = urllib.parse.quote(f"{topic} official docs")
+    products_query = urllib.parse.quote(f"{topic} product platform SaaS")
+    benchmark_query = urllib.parse.quote(f"{topic} benchmark evaluation comparison")
     awesome_query = urllib.parse.quote(f"awesome {topic}")
     return [
         Candidate(
@@ -169,6 +195,28 @@ def generated_search_candidates(topic: str) -> list[Candidate]:
             source="Generated Search",
             value="用于发现官方文档、规范和产品主页。",
             reason="官方文档需要人工/Codex 二次确认，避免把 SEO 页面当官方来源。",
+        ),
+        Candidate(
+            type="商业产品搜索",
+            name=f"商业产品/平台搜索：{topic}",
+            url=f"https://www.google.com/search?q={products_query}",
+            evidence="D-待验证",
+            status="待读",
+            priority=57,
+            source="Generated Search",
+            value="用于发现非开源产品、SaaS、企业方案和官网资料。",
+            reason="商业产品资料常来自官网/定价页/文档页，必须二次确认，不可直接当正式证据。",
+        ),
+        Candidate(
+            type="Benchmark搜索",
+            name=f"Benchmark/Evaluation 搜索：{topic}",
+            url=f"https://www.google.com/search?q={benchmark_query}",
+            evidence="D-待验证",
+            status="待读",
+            priority=56,
+            source="Generated Search",
+            value="用于发现评测榜单、横向对比和公开 benchmark。",
+            reason="benchmark 入口用于建立候选清单，正式结论仍需回到原始评测或论文。",
         ),
         Candidate(
             type="Awesome列表搜索",
@@ -195,6 +243,117 @@ def generated_search_candidates(topic: str) -> list[Candidate]:
     ]
 
 
+def openalex_candidates(topic: str, limit: int) -> tuple[list[Candidate], list[str]]:
+    params = urllib.parse.urlencode({
+        "search": topic,
+        "per-page": max(1, min(limit, 20)),
+        "sort": "cited_by_count:desc",
+    })
+    url = f"https://api.openalex.org/works?{params}"
+    try:
+        payload = json.loads(fetch_text(url, timeout=30))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError) as exc:
+        return [], [f"OpenAlex 搜索失败：{topic} -> {exc}"]
+
+    candidates: list[Candidate] = []
+    seen: set[str] = set()
+    for work in payload.get("results", []):
+        title = work.get("title") or work.get("display_name") or "Untitled OpenAlex work"
+        link = (work.get("primary_location") or {}).get("landing_page_url") or work.get("doi") or work.get("id") or ""
+        year = work.get("publication_year") or "n.d."
+        cited = work.get("cited_by_count") or 0
+        add_unique(
+            candidates,
+            seen,
+            Candidate(
+                type="论文/技术报告",
+                name=title,
+                url=link,
+                evidence="B-论文/技术报告",
+                status="待读",
+                priority=82 if cited >= 500 else 72 if cited >= 50 else 62,
+                source="OpenAlex API",
+                value=f"{year}；cited_by={cited}；{openalex_abstract_snippet(work.get('abstract_inverted_index'))}",
+                reason="OpenAlex 公开检索结果，适合补足 arXiv 之外的论文/报告候选。",
+            ),
+        )
+    return candidates, []
+
+
+def crossref_candidates(topic: str, limit: int) -> tuple[list[Candidate], list[str]]:
+    params = urllib.parse.urlencode({
+        "query": topic,
+        "rows": max(1, min(limit, 20)),
+        "sort": "relevance",
+        "order": "desc",
+    })
+    url = f"https://api.crossref.org/works?{params}"
+    try:
+        payload = json.loads(fetch_text(url, timeout=30))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError) as exc:
+        return [], [f"Crossref 搜索失败：{topic} -> {exc}"]
+
+    candidates: list[Candidate] = []
+    seen: set[str] = set()
+    for item in (payload.get("message") or {}).get("items", []):
+        title = " ".join((item.get("title") or ["Untitled Crossref work"])[0].split())
+        doi = item.get("DOI") or ""
+        link = f"https://doi.org/{doi}" if doi else (item.get("URL") or "")
+        year_parts = (((item.get("published-print") or item.get("published-online") or {}).get("date-parts")) or [[]])[0]
+        year = year_parts[0] if year_parts else "n.d."
+        add_unique(
+            candidates,
+            seen,
+            Candidate(
+                type="论文/出版物",
+                name=title,
+                url=link,
+                evidence="B-论文/技术报告",
+                status="待读",
+                priority=66,
+                source="Crossref API",
+                value=f"{year}；publisher={item.get('publisher', '未知')}",
+                reason="Crossref 公开元数据结果，可补足 ACM/IEEE/出版社论文线索，需访问原文确认。",
+            ),
+        )
+    return candidates, []
+
+
+def semantic_scholar_candidates(topic: str, limit: int) -> tuple[list[Candidate], list[str]]:
+    params = urllib.parse.urlencode({
+        "query": topic,
+        "limit": max(1, min(limit, 20)),
+        "fields": "title,url,year,citationCount,abstract,venue",
+    })
+    url = f"https://api.semanticscholar.org/graph/v1/paper/search?{params}"
+    try:
+        payload = json.loads(fetch_text(url, timeout=30))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError) as exc:
+        return [], [f"Semantic Scholar 搜索失败：{topic} -> {exc}"]
+
+    candidates: list[Candidate] = []
+    seen: set[str] = set()
+    for paper in payload.get("data", []):
+        title = paper.get("title") or "Untitled Semantic Scholar paper"
+        cited = paper.get("citationCount") or 0
+        add_unique(
+            candidates,
+            seen,
+            Candidate(
+                type="论文",
+                name=title,
+                url=paper.get("url") or "",
+                evidence="B-论文/技术报告",
+                status="待读",
+                priority=84 if cited >= 500 else 74 if cited >= 50 else 64,
+                source="Semantic Scholar API",
+                value=f"{paper.get('year', 'n.d.')}；{paper.get('venue', '未知 venue')}；citations={cited}；{shorten(paper.get('abstract', ''))}",
+                reason="Semantic Scholar 公开检索结果，适合发现高引用论文和相关工作线索。",
+            ),
+        )
+    return candidates, []
+
+
 def write_outputs(workspace: Path, topic: str, candidates: list[Candidate], errors: list[str]) -> None:
     out_dir = workspace / "自动发现"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -208,7 +367,8 @@ def write_outputs(workspace: Path, topic: str, candidates: list[Candidate], erro
     rows = []
     for item in sorted(candidates, key=lambda c: c.priority, reverse=True):
         rows.append(
-            f"| {item.type} | {item.name} | {item.priority} | {item.evidence} | {item.status} | {item.url} | {item.reason} |"
+            f"| {md_cell(item.type)} | {md_cell(item.name)} | {item.priority} | {md_cell(item.evidence)} | "
+            f"{md_cell(item.status)} | {md_cell(item.source)} | {md_cell(item.url)} | {md_cell(item.value)} | {md_cell(item.reason)} |"
         )
     error_block = "\n".join(f"- {error}" for error in errors) if errors else "- 无"
     md.write_text(
@@ -220,8 +380,8 @@ def write_outputs(workspace: Path, topic: str, candidates: list[Candidate], erro
 
 ## 候选列表
 
-| 类型 | 名称 | 优先级 | 证据等级 | 阅读状态 | 链接 | 入选原因 |
-| --- | --- | --- | --- | --- | --- | --- |
+| 类型 | 名称 | 优先级 | 证据等级 | 阅读状态 | 来源 | 链接 | 信号 | 入选原因 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 {chr(10).join(rows)}
 
 ## 获取失败/待验证
@@ -245,6 +405,9 @@ def main() -> None:
     parser.add_argument("--workspace", required=True)
     parser.add_argument("--max-github", type=int, default=12)
     parser.add_argument("--max-arxiv", type=int, default=10)
+    parser.add_argument("--max-openalex", type=int, default=8)
+    parser.add_argument("--max-crossref", type=int, default=8)
+    parser.add_argument("--max-semantic-scholar", type=int, default=8)
     args = parser.parse_args()
 
     workspace = Path(args.workspace).expanduser().resolve()
@@ -257,9 +420,15 @@ def main() -> None:
 
     github_items, github_errors = github_candidates(args.topic, args.max_github)
     arxiv_items, arxiv_errors = arxiv_candidates(args.topic, args.max_arxiv)
+    openalex_items, openalex_errors = openalex_candidates(args.topic, args.max_openalex)
+    crossref_items, crossref_errors = crossref_candidates(args.topic, args.max_crossref)
+    semantic_items, semantic_errors = semantic_scholar_candidates(args.topic, args.max_semantic_scholar)
     errors.extend(github_errors)
     errors.extend(arxiv_errors)
-    for item in github_items + arxiv_items:
+    errors.extend(openalex_errors)
+    errors.extend(crossref_errors)
+    errors.extend(semantic_errors)
+    for item in github_items + arxiv_items + openalex_items + crossref_items + semantic_items:
         add_unique(candidates, seen, item)
 
     write_outputs(workspace, args.topic, candidates, errors)
